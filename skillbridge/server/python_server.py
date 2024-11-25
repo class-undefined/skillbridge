@@ -80,7 +80,9 @@ def create_unix_server_class(single: bool) -> type[BaseServer]:
         allow_reuse_address = True
 
         def __init__(self, file: str, handler: type[BaseRequestHandler]) -> None:
-            self.path = f'/tmp/skill-server-{file}.sock'
+            path = getenv(
+                "SKILLBRIDGE_SOCK_FILE") or f'/tmp/skill-server-{file}.sock'
+            self.path = path
             with contextlib.suppress(FileNotFoundError):
                 Path(self.path).unlink()
 
@@ -132,7 +134,8 @@ class Handler(StreamRequestHandler):
 
         send_to_skill(command.decode())
         logger.debug("sent data to skill")
-        result = read_from_skill(self.server.skill_timeout).encode()  # type: ignore[attr-defined]
+        # type: ignore[attr-defined]
+        result = read_from_skill(self.server.skill_timeout).encode()
         logger.debug(f"got response from skill {result[:1000]!r}")
 
         self.request.send(f'{len(result):10}'.encode())

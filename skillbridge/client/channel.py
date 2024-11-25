@@ -5,6 +5,7 @@ from select import select
 from socket import AF_INET, SOCK_STREAM, socket
 from sys import platform
 from typing import Any, Iterable, TextIO
+from os import getenv
 
 
 class Channel:
@@ -117,7 +118,8 @@ class TcpChannel(Channel):
         if len(byte) > self._max_transmission_length:
             got = len(byte)
             should = self._max_transmission_length
-            raise ValueError(f'Data exceeds max transmission length {got} > {should}')
+            raise ValueError(
+                f'Data exceeds max transmission length {got} > {should}')
 
         length = f'{len(byte):10}'.encode()
 
@@ -216,6 +218,8 @@ else:
             @staticmethod
             def create_address(id_: Any) -> Any:
                 id_ = 'default' if id_ is None else id_
-                return f'/tmp/skill-server-{id_}.sock'
+                path = getenv(
+                    "SKILLBRIDGE_SOCK_FILE") or f'/tmp/skill-server-{id_}.sock'
+                return path
 
         return UnixChannel
